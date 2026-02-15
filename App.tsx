@@ -4,7 +4,7 @@ import { Campaign, Character, AppState, CampaignTheme } from './types';
 import { CampaignIcon } from './components/IconComponents';
 import { CharacterFile } from './components/CharacterFile';
 import { CharacterDetail } from './components/CharacterDetail';
-import { ArrowLeft, Plus, Image as ImageIcon, Settings, Upload, Check, Trash2, RefreshCw, Lock, Unlock } from 'lucide-react';
+import { ArrowLeft, Plus, Image as ImageIcon, Settings, Upload, Check, Trash2, RefreshCw, Lock, Unlock, User, Users } from 'lucide-react';
 
 // --- INITIAL MOCK DATA ---
 const INITIAL_DATA: Campaign[] = [
@@ -20,6 +20,7 @@ const INITIAL_DATA: Campaign[] = [
       {
         id: 'w1',
         name: 'Gromph',
+        type: 'PC',
         race: '하프 오크',
         class: '바바리안',
         level: 5,
@@ -30,6 +31,7 @@ const INITIAL_DATA: Campaign[] = [
       {
         id: 'w2',
         name: 'Elara Moonwhisper',
+        type: 'PC',
         race: '엘프',
         class: '위저드',
         level: 5,
@@ -40,6 +42,7 @@ const INITIAL_DATA: Campaign[] = [
       {
         id: 'p1',
         name: 'Seraphina',
+        type: 'PC',
         race: '티플링',
         class: '클레릭',
         level: 8,
@@ -61,6 +64,7 @@ const INITIAL_DATA: Campaign[] = [
       {
         id: 's1',
         name: 'Ismark the Lesser',
+        type: 'NPC',
         race: '인간',
         class: '파이터',
         level: 9,
@@ -88,6 +92,7 @@ const INITIAL_DATA: Campaign[] = [
       {
         id: 'cp1',
         name: 'V0iD',
+        type: 'PC',
         race: 'Human',
         class: 'Netrunner',
         level: 4, // Rank
@@ -108,7 +113,17 @@ const INITIAL_DATA: Campaign[] = [
 const App: React.FC = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>(() => {
     const saved = localStorage.getItem('rpg_archives_data');
-    return saved ? JSON.parse(saved) : INITIAL_DATA;
+    let parsed: Campaign[] = saved ? JSON.parse(saved) : INITIAL_DATA;
+    
+    // Migration: Ensure 'type' field exists
+    parsed = parsed.map(c => ({
+        ...c,
+        characters: c.characters.map((char: any) => ({
+            ...char,
+            type: char.type || 'PC' // Default to PC if missing
+        }))
+    }));
+    return parsed;
   });
   
   // Update state types to support array of strings for rotating backgrounds
@@ -142,6 +157,7 @@ const App: React.FC = () => {
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isCreationModalOpen, setIsCreationModalOpen] = useState(false);
 
   // Admin / Auth state
   const [isAdmin, setIsAdmin] = useState(false);
@@ -217,7 +233,10 @@ const App: React.FC = () => {
 
   const handleDeleteCharacter = (characterId: string) => {
       if (!selectedCampaignId) return;
-      if (!isAdmin) return;
+      if (!isAdmin) {
+          alert("관리자 권한이 필요합니다.");
+          return;
+      }
 
       if (window.confirm("이 캐릭터 데이터를 영구적으로 삭제하시겠습니까?")) {
           setCampaigns(prev => prev.map(camp => {
@@ -243,19 +262,21 @@ const App: React.FC = () => {
     setSelectedCharacterId(null); // Close modal on save
   };
 
-  const handleCreateNewCharacter = () => {
+  const handleCreateNewCharacter = (type: 'PC' | 'NPC') => {
     if (!selectedCampaignId) return;
     
     const newChar: Character = {
         id: Date.now().toString(),
-        name: '이름 없음',
-        race: '종족/출신',
-        class: '직업/역할',
-        level: 1,
+        name: type === 'PC' ? '새로운 모험가' : '새로운 NPC',
+        type: type,
+        race: '',
+        class: '',
+        level: type === 'PC' ? 1 : 0,
         status: 'Alive',
-        description: '클릭하여 상세 정보를 입력하세요...',
+        description: '',
         imageUrl: '',
-        secretFile: (activeCampaign?.theme === 'gothic' || activeCampaign?.theme === 'cyberpunk' || activeCampaign?.theme === 'sci-fi' || activeCampaign?.theme === 'noir') ? {
+        // Only PC gets secret file in specific themes
+        secretFile: (type === 'PC' && (activeCampaign?.theme === 'gothic' || activeCampaign?.theme === 'cyberpunk' || activeCampaign?.theme === 'sci-fi' || activeCampaign?.theme === 'noir')) ? {
             title: '기밀 기록',
             content: '기록된 데이터 없음.',
             isUnlocked: false
@@ -266,6 +287,8 @@ const App: React.FC = () => {
         if (camp.id !== selectedCampaignId) return camp;
         return { ...camp, characters: [...camp.characters, newChar] };
     }));
+    
+    setIsCreationModalOpen(false);
   };
 
   const handleBgUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -620,6 +643,56 @@ const App: React.FC = () => {
           </div>
       )}
 
+      {/* --- CHARACTER TYPE SELECTION MODAL --- */}
+      {isCreationModalOpen && (
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200 cursor-pointer"
+            onClick={(e) => { if (e.target === e.currentTarget) setIsCreationModalOpen(false); }}
+          >
+              <div className="bg-gray-900 border border-gray-700 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden transform scale-100 cursor-default">
+                  <div className="p-6 text-center border-b border-gray-800">
+                      <h3 className="text-xl font-bold text-white mb-2">새 캐릭터 유형 선택</h3>
+                      <p className="text-sm text-gray-400">생성할 항목의 유형을 선택하십시오.</p>
+                  </div>
+                  <div className="p-6 grid grid-cols-2 gap-4">
+                      <button 
+                          onClick={() => handleCreateNewCharacter('PC')}
+                          className="flex flex-col items-center justify-center p-6 gap-3 bg-blue-600/10 border-2 border-blue-600/50 hover:border-blue-500 hover:bg-blue-600/20 rounded-xl transition-all group"
+                      >
+                          <div className="p-3 bg-blue-600 rounded-full text-white group-hover:scale-110 transition-transform">
+                              <User size={32} />
+                          </div>
+                          <div className="text-center">
+                              <span className="block font-bold text-blue-400 group-hover:text-blue-300">플레이어 캐릭터</span>
+                              <span className="block text-xs text-gray-500 mt-1">상세 기록 / 시크릿 파일</span>
+                          </div>
+                      </button>
+                      
+                      <button 
+                          onClick={() => handleCreateNewCharacter('NPC')}
+                          className="flex flex-col items-center justify-center p-6 gap-3 bg-green-600/10 border-2 border-green-600/50 hover:border-green-500 hover:bg-green-600/20 rounded-xl transition-all group"
+                      >
+                          <div className="p-3 bg-green-600 rounded-full text-white group-hover:scale-110 transition-transform">
+                              <Users size={32} />
+                          </div>
+                          <div className="text-center">
+                              <span className="block font-bold text-green-400 group-hover:text-green-300">NPC</span>
+                              <span className="block text-xs text-gray-500 mt-1">간소화된 기록</span>
+                          </div>
+                      </button>
+                  </div>
+                  <div className="p-4 bg-gray-800 text-center">
+                      <button 
+                          onClick={() => setIsCreationModalOpen(false)}
+                          className="text-gray-400 hover:text-white text-sm"
+                      >
+                          취소
+                      </button>
+                  </div>
+              </div>
+          </div>
+      )}
+
       {/* --- LANDING PAGE --- */}
       {!selectedCampaignId && (
         <div className="container mx-auto px-4 py-12 relative z-10 flex flex-col items-center justify-center min-h-screen">
@@ -777,7 +850,7 @@ const App: React.FC = () => {
                     
                     {/* Add New Button */}
                     <button 
-                        onClick={handleCreateNewCharacter}
+                        onClick={() => setIsCreationModalOpen(true)}
                         className={`
                             w-full h-full min-h-[144px] border-2 rounded-lg flex flex-col items-center justify-center p-6 transition-all backdrop-blur-sm opacity-60 hover:opacity-100 hover:backdrop-blur-md hover:scale-[1.02]
                             ${getAddButtonStyle()}

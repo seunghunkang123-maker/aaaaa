@@ -43,6 +43,8 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const secretFileInputRef = useRef<HTMLInputElement>(null);
 
+  const isNPC = editedChar.type === 'NPC';
+
   // Styling maps
   const containerStyles: Record<string, string> = {
     fantasy: "bg-[#fcf5e5] text-[#2c1810] font-serif border-4 border-[#8b5a2b]",
@@ -154,7 +156,7 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
             {theme === 'cyberpunk' && '>>'}
             {theme === 'comedy' && '★'}
             {theme === 'superhero' && '⚡'}
-             CHARACTER_FILE
+             {isNPC ? 'NPC_FILE' : 'CHARACTER_FILE'}
             {theme === 'cyberpunk' && '_'}
             {theme === 'comedy' && '★'}
           </h2>
@@ -213,69 +215,72 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                     className={`w-full text-lg font-bold ${inputBaseClass}`}
                     />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                    <div className={`${isDnD ? 'col-span-2' : ''}`}>
-                        <label className="text-xs opacity-70 uppercase block mb-1">
-                            {isDnD ? '클래스 (Class)' : '역할 (Role)'}
-                        </label>
-                        {isDnD ? (
-                           <div className="space-y-2">
-                             <select
-                               value={DND_CLASSES[currentMainClass] ? currentMainClass : ''}
-                               onChange={(e) => handleClassChange(e.target.value, '')}
-                               className={`w-full appearance-none p-1 ${inputBaseClass} ${theme === 'fantasy' ? 'bg-[#f4e4bc]' : ''}`}
-                             >
-                                 <option value="">클래스 선택</option>
-                                 {Object.keys(DND_CLASSES).map(cls => (
-                                     <option key={cls} value={cls}>{cls}</option>
-                                 ))}
-                             </select>
-                             {currentMainClass && DND_CLASSES[currentMainClass] && (
-                                 <select
-                                      value={currentSubClass}
-                                      onChange={(e) => handleClassChange(currentMainClass, e.target.value)}
-                                      className={`w-full text-sm appearance-none p-1 ${inputBaseClass} ${theme === 'fantasy' ? 'bg-[#f4e4bc]' : ''}`}
-                                 >
-                                     <option value="">서브클래스 선택 (선택사항)</option>
-                                     {DND_CLASSES[currentMainClass].map(sub => (
-                                         <option key={sub} value={sub}>{sub}</option>
-                                     ))}
-                                 </select>
-                             )}
-                           </div>
-                        ) : (
-                            <input 
-                                value={editedChar.class}
-                                onChange={(e) => setEditedChar({...editedChar, class: e.target.value})}
-                                className={`w-full ${inputBaseClass}`}
-                            />
-                        )}
-                    </div>
-                    
-                     {!isDnD && (
-                        <div>
-                            <label className="text-xs opacity-70 uppercase block mb-1">
-                                {theme === 'cyberpunk' || theme === 'sci-fi' ? '출신 (Origin)' : '종족 (Race)'}
-                            </label>
-                            <input 
-                                value={editedChar.race}
-                                onChange={(e) => setEditedChar({...editedChar, race: e.target.value})}
-                                className={`w-full ${inputBaseClass}`}
-                            />
-                        </div>
-                    )}
-                </div>
                 
-                {isDnD && (
+                {/* NPC: Simplified Role Input */}
+                {isNPC ? (
                      <div>
-                        <label className="text-xs opacity-70 uppercase block mb-1">종족 (Race)</label>
+                        <label className="text-xs opacity-70 uppercase block mb-1">역할 / 직업</label>
                         <input 
-                            value={editedChar.race}
-                            onChange={(e) => setEditedChar({...editedChar, race: e.target.value})}
+                            value={editedChar.class}
+                            onChange={(e) => setEditedChar({...editedChar, class: e.target.value})}
                             className={`w-full ${inputBaseClass}`}
+                            placeholder="예: 상점 주인, 경비병"
                         />
                     </div>
+                ) : (
+                    // PC: Full Class Inputs
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className={`${isDnD ? 'col-span-2' : ''}`}>
+                            <label className="text-xs opacity-70 uppercase block mb-1">
+                                {isDnD ? '클래스 (Class)' : '역할 (Role)'}
+                            </label>
+                            {isDnD ? (
+                            <div className="space-y-2">
+                                <select
+                                value={DND_CLASSES[currentMainClass] ? currentMainClass : ''}
+                                onChange={(e) => handleClassChange(e.target.value, '')}
+                                className={`w-full appearance-none p-1 ${inputBaseClass} ${theme === 'fantasy' ? 'bg-[#f4e4bc]' : ''}`}
+                                >
+                                    <option value="">클래스 선택</option>
+                                    {Object.keys(DND_CLASSES).map(cls => (
+                                        <option key={cls} value={cls}>{cls}</option>
+                                    ))}
+                                </select>
+                                {currentMainClass && DND_CLASSES[currentMainClass] && (
+                                    <select
+                                        value={currentSubClass}
+                                        onChange={(e) => handleClassChange(currentMainClass, e.target.value)}
+                                        className={`w-full text-sm appearance-none p-1 ${inputBaseClass} ${theme === 'fantasy' ? 'bg-[#f4e4bc]' : ''}`}
+                                    >
+                                        <option value="">서브클래스 선택 (선택사항)</option>
+                                        {DND_CLASSES[currentMainClass].map(sub => (
+                                            <option key={sub} value={sub}>{sub}</option>
+                                        ))}
+                                    </select>
+                                )}
+                            </div>
+                            ) : (
+                                <input 
+                                    value={editedChar.class}
+                                    onChange={(e) => setEditedChar({...editedChar, class: e.target.value})}
+                                    className={`w-full ${inputBaseClass}`}
+                                />
+                            )}
+                        </div>
+                    </div>
                 )}
+                
+                {/* Race / Origin */}
+                <div>
+                     <label className="text-xs opacity-70 uppercase block mb-1">
+                         {theme === 'cyberpunk' || theme === 'sci-fi' ? '출신 (Origin)' : '종족 (Race)'}
+                     </label>
+                     <input 
+                         value={editedChar.race}
+                         onChange={(e) => setEditedChar({...editedChar, race: e.target.value})}
+                         className={`w-full ${inputBaseClass}`}
+                     />
+                 </div>
 
                 <div>
                     <label className="text-xs opacity-70 uppercase block mb-1">상태</label>
@@ -316,8 +321,8 @@ export const CharacterDetail: React.FC<CharacterDetailProps> = ({
                 />
                 </div>
 
-                {/* Secret File Section */}
-                {editedChar.secretFile && (
+                {/* Secret File Section - HIDDEN FOR NPCs */}
+                {!isNPC && editedChar.secretFile && (
                 <div className={`border-2 mt-8 rounded p-4 transition-all duration-500 ${
                     showSecret 
                     ? (theme === 'cyberpunk' ? 'border-red-500 shadow-[0_0_20px_rgba(255,0,0,0.4)]' : 'border-red-900 bg-red-900/10')

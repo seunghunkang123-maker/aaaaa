@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Character, CampaignTheme } from '../types';
-import { FileText, User, Trash2 } from 'lucide-react';
+import { FileText, User, Trash2, Users } from 'lucide-react';
 
 interface CharacterFileProps {
   character: Character;
@@ -46,9 +46,11 @@ export const CharacterFile: React.FC<CharacterFileProps> = ({ character, theme, 
 
   const selectedStyle = styles[theme] || styles.fantasy;
   const selectedImgStyle = imageStyles[theme] || "";
+  const isNPC = character.type === 'NPC';
 
   const handleDelete = (e: React.MouseEvent) => {
-      e.stopPropagation();
+      e.stopPropagation(); // Stop bubbling to card click
+      e.preventDefault();  // Prevent default behavior
       if (onDelete) onDelete();
   };
 
@@ -65,14 +67,15 @@ export const CharacterFile: React.FC<CharacterFileProps> = ({ character, theme, 
         <FileText size={24} />
       </div>
 
-      {/* Delete Button - Only shown if onDelete is provided */}
+      {/* Delete Button - Always visible if admin (onDelete exists) to ensure clickability */}
       {onDelete && (
         <button 
+            type="button"
             onClick={handleDelete}
-            className="absolute top-2 right-2 p-1.5 rounded-full hover:bg-red-500 hover:text-white transition-colors z-10 opacity-0 group-hover:opacity-100"
-            title="항목 삭제"
+            className="absolute top-2 right-2 p-2 rounded-full bg-red-600/20 hover:bg-red-600 text-red-500 hover:text-white transition-all z-50 hover:scale-110 shadow-sm"
+            title="항목 삭제 (관리자)"
         >
-            <Trash2 size={16} />
+            <Trash2 size={18} />
         </button>
       )}
 
@@ -82,7 +85,7 @@ export const CharacterFile: React.FC<CharacterFileProps> = ({ character, theme, 
                 <img src={character.imageUrl} alt={character.name} className={`w-full h-full object-cover ${selectedImgStyle}`} />
             ) : (
                 <div className="w-full h-full bg-gray-500 flex items-center justify-center">
-                    <User size={24} />
+                    {isNPC ? <Users size={24} /> : <User size={24} />}
                 </div>
             )}
         </div>
@@ -93,14 +96,14 @@ export const CharacterFile: React.FC<CharacterFileProps> = ({ character, theme, 
           <p className="text-sm opacity-80 truncate">
             {character.race} {character.class}
           </p>
-          <div className="mt-1 inline-block px-2 py-0.5 text-xs border rounded opacity-70 whitespace-nowrap">
-            Lv. {character.level}
+          <div className={`mt-1 inline-block px-2 py-0.5 text-xs border rounded opacity-70 whitespace-nowrap font-bold ${isNPC ? 'bg-black/10' : ''}`}>
+            {isNPC ? 'NPC' : `Lv. ${character.level}`}
           </div>
         </div>
       </div>
       
-      {/* Secret File Indicator */}
-      {character.secretFile && (
+      {/* Secret File Indicator (Only for PCs) */}
+      {!isNPC && character.secretFile && (
         <div className="absolute bottom-2 right-2">
             <span className={`text-xs px-2 py-1 rounded border opacity-90 font-bold bg-black/20`}>
                 SECRET

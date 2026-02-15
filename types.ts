@@ -24,6 +24,7 @@ export interface SecretFile {
 export interface Character {
   id: string;
   name: string;
+  type: 'PC' | 'NPC'; // Added type field
   race: string;
   class: string; // Or Role for Cyberpunk
   description: string;
