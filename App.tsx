@@ -182,20 +182,14 @@ const App: React.FC = () => {
   }, []);
 
   // Persistence
-  useEffect(() => {
+useEffect(() => {
+  try {
     localStorage.setItem('rpg_archives_data', JSON.stringify(campaigns));
-  }, [campaigns]);
-
-  useEffect(() => {
-    localStorage.setItem('rpg_archives_campaign_bgs', JSON.stringify(campaignBackgrounds));
-  }, [campaignBackgrounds]);
-
-  useEffect(() => {
-    localStorage.setItem('rpg_archives_global_bg', JSON.stringify(globalBackground));
-  }, [globalBackground]);
-
-  const activeCampaign = campaigns.find(c => c.id === selectedCampaignId);
-  const activeCharacter = activeCampaign?.characters.find(c => c.id === selectedCharacterId);
+  } catch (e) {
+    console.error('localStorage save failed:', e);
+    alert('저장 용량이 초과되어 저장에 실패했습니다. 이미지 용량을 줄이거나 일부 이미지를 제거해 주세요.');
+  }
+}, [campaigns]);
 
   // --- Handlers ---
 
