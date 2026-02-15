@@ -49,8 +49,7 @@ export const CharacterFile: React.FC<CharacterFileProps> = ({ character, theme, 
   const isNPC = character.type === 'NPC';
 
   const handleDelete = (e: React.MouseEvent) => {
-      e.stopPropagation(); // Stop bubbling to card click
-      e.preventDefault();  // Prevent default behavior
+      e.stopPropagation();
       if (onDelete) onDelete();
   };
 
@@ -67,15 +66,14 @@ export const CharacterFile: React.FC<CharacterFileProps> = ({ character, theme, 
         <FileText size={24} />
       </div>
 
-      {/* Delete Button - Always visible if admin (onDelete exists) to ensure clickability */}
+      {/* Delete Button - Only shown if onDelete is provided */}
       {onDelete && (
         <button 
-            type="button"
             onClick={handleDelete}
-            className="absolute top-2 right-2 p-2 rounded-full bg-red-600/20 hover:bg-red-600 text-red-500 hover:text-white transition-all z-50 hover:scale-110 shadow-sm"
-            title="항목 삭제 (관리자)"
+            className="absolute top-2 right-2 p-1.5 rounded-full hover:bg-red-500 hover:text-white transition-colors z-10 opacity-0 group-hover:opacity-100"
+            title="항목 삭제"
         >
-            <Trash2 size={18} />
+            <Trash2 size={16} />
         </button>
       )}
 

@@ -233,10 +233,7 @@ const App: React.FC = () => {
 
   const handleDeleteCharacter = (characterId: string) => {
       if (!selectedCampaignId) return;
-      if (!isAdmin) {
-          alert("관리자 권한이 필요합니다.");
-          return;
-      }
+      if (!isAdmin) return;
 
       if (window.confirm("이 캐릭터 데이터를 영구적으로 삭제하시겠습니까?")) {
           setCampaigns(prev => prev.map(camp => {
@@ -645,11 +642,8 @@ const App: React.FC = () => {
 
       {/* --- CHARACTER TYPE SELECTION MODAL --- */}
       {isCreationModalOpen && (
-          <div 
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200 cursor-pointer"
-            onClick={(e) => { if (e.target === e.currentTarget) setIsCreationModalOpen(false); }}
-          >
-              <div className="bg-gray-900 border border-gray-700 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden transform scale-100 cursor-default">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+              <div className="bg-gray-900 border border-gray-700 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden transform scale-100">
                   <div className="p-6 text-center border-b border-gray-800">
                       <h3 className="text-xl font-bold text-white mb-2">새 캐릭터 유형 선택</h3>
                       <p className="text-sm text-gray-400">생성할 항목의 유형을 선택하십시오.</p>
